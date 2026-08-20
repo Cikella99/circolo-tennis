@@ -165,6 +165,23 @@ function deleteBooking(id) {
   saveBookings(list);
 }
 
+function updateBooking(id, changes) {
+  const list = getBookings();
+  const idx = list.findIndex((b) => b.id === id);
+  if (idx === -1) return null;
+  const updated = { ...list[idx], ...changes };
+  list[idx] = updated;
+  saveBookings(list);
+
+  const history = getHistory();
+  const hIdx = history.findIndex((b) => b.id === id);
+  if (hIdx !== -1) {
+    history[hIdx] = { ...history[hIdx], ...changes };
+    saveHistory(history);
+  }
+  return updated;
+}
+
 /* Registro permanente di tutte le prenotazioni mai fatte, usato per lo storico clienti.
    Non viene mai ripulito da deleteBooking: una prenotazione disdetta resta nello storico. */
 function getHistory() {

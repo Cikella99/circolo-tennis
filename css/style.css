@@ -224,31 +224,11 @@ img {
 }
 
 .hero-visual-court {
+  display: block;
+  width: 100%;
   aspect-ratio: 4 / 3;
   border-radius: 8px;
-  background:
-    repeating-linear-gradient(90deg, transparent, transparent 38px, rgba(255,255,255,0.35) 38px, rgba(255,255,255,0.35) 40px),
-    linear-gradient(160deg, var(--color-green) 0%, var(--color-green-dark) 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-visual-court::before {
-  content: "";
-  position: absolute;
-  inset: 14px;
-  border: 2px solid rgba(255,255,255,0.55);
-  border-radius: 4px;
-}
-
-.hero-visual-court::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 14px;
-  bottom: 14px;
-  width: 2px;
-  background: rgba(255,255,255,0.55);
+  object-fit: cover;
 }
 
 .hero-stats {
@@ -1276,6 +1256,12 @@ section {
 
 .schedule-cell.free {
   background: var(--color-white);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.schedule-cell.free:hover {
+  background: var(--color-green-light);
 }
 
 .schedule-cell.busy {
@@ -1294,6 +1280,32 @@ section {
   outline-offset: -2px;
 }
 
+/* Bordo nero che raggruppa visivamente le celle di una stessa prenotazione */
+.schedule-cell.busy.group-solo {
+  border: 2px solid #1a1a1a;
+}
+
+.schedule-cell.busy.group-start {
+  border-top: 2px solid #1a1a1a;
+  border-bottom: 2px solid #1a1a1a;
+  border-left: 2px solid #1a1a1a;
+  border-right-color: var(--color-orange);
+}
+
+.schedule-cell.busy.group-middle {
+  border-top: 2px solid #1a1a1a;
+  border-bottom: 2px solid #1a1a1a;
+  border-left-color: var(--color-orange);
+  border-right-color: var(--color-orange);
+}
+
+.schedule-cell.busy.group-end {
+  border-top: 2px solid #1a1a1a;
+  border-bottom: 2px solid #1a1a1a;
+  border-right: 2px solid #1a1a1a;
+  border-left-color: var(--color-orange);
+}
+
 .schedule-detail {
   margin-top: 16px;
   padding: 14px 16px;
@@ -1307,6 +1319,43 @@ section {
 
 .schedule-detail strong {
   color: var(--color-text);
+}
+
+.schedule-detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.schedule-detail-actions .btn-outline {
+  padding: 8px 16px;
+  font-size: 0.82rem;
+}
+
+.schedule-edit-form .form-row {
+  margin-bottom: 14px;
+}
+
+.schedule-edit-form select,
+.schedule-edit-form input[type="text"] {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1.5px solid var(--color-border);
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.schedule-edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.schedule-edit-actions .btn {
+  padding: 9px 18px;
+  font-size: 0.85rem;
 }
 
 .table-wrap {

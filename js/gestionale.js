@@ -50,11 +50,30 @@ function renderAdminSlotGrid() {
     const btn = document.createElement("div");
     btn.className = "slot-btn" + (occupied ? " busy" : "") + (adminState.time === slot ? " selected" : "");
     btn.textContent = slot;
+    btn.dataset.slot = slot;
     if (!occupied) {
       btn.addEventListener("click", () => selectAdminTime(slot, btn));
     }
     adminSlotGrid.appendChild(btn);
   });
+}
+
+function prefillAddForm(sport, court, dateStr, time) {
+  const sportEl = document.querySelector(`#adminSportOptions [data-sport="${sport}"]`);
+  if (sportEl) selectAdminSport(sport, sportEl);
+
+  adminDate.value = dateStr;
+  adminState.date = dateStr;
+
+  const courtEl = document.querySelector(`#adminCourtOptions [data-court="${court}"]`);
+  if (courtEl) selectAdminCourt(court, courtEl);
+
+  const slotBtn = [...adminSlotGrid.querySelectorAll(".slot-btn")].find((b) => b.dataset.slot === time);
+  if (slotBtn && !slotBtn.classList.contains("busy")) {
+    selectAdminTime(time, slotBtn);
+  }
+
+  clientNameInput.focus();
 }
 
 function selectAdminTime(slot, el) {
@@ -351,9 +370,18 @@ function renderScheduleTable() {
     slots.forEach((slot) => {
       const booking = findBookingAtSlot(sport, court, dateStr, slot);
       if (booking) {
-        body += `<td class="schedule-cell busy" data-id="${booking.id}"></td>`;
+        const slotM = timeToMinutes(slot);
+        const bStart = timeToMinutes(booking.time);
+        const bEnd = bStart + booking.duration * 60;
+        const isStart = slotM === bStart;
+        const isEnd = slotM + 30 === bEnd;
+        let groupClass = "group-middle";
+        if (isStart && isEnd) groupClass = "group-solo";
+        else if (isStart) groupClass = "group-start";
+        else if (isEnd) groupClass = "group-end";
+        body += `<td class="schedule-cell busy ${groupClass}" data-id="${booking.id}" data-sport="${sport}" data-court="${court}" data-slot="${slot}"></td>`;
       } else {
-        body += `<td class="schedule-cell free"></td>`;
+        body += `<td class="schedule-cell free" data-sport="${sport}" data-court="${court}" data-slot="${slot}"></td>`;
       }
     });
     body += "</tr>";
@@ -367,6 +395,14 @@ function renderScheduleTable() {
       scheduleTable.querySelectorAll(".schedule-cell.selected").forEach((c) => c.classList.remove("selected"));
       cell.classList.add("selected");
       showScheduleDetail(cell.dataset.id);
+    });
+  });
+
+  scheduleTable.querySelectorAll(".schedule-cell.free").forEach((cell) => {
+    cell.addEventListener("click", () => {
+      const { sport, court, slot } = cell.dataset;
+      selectView("add");
+      prefillAddForm(sport, court, dateStr, slot);
     });
   });
 }
@@ -389,15 +425,99 @@ function showScheduleDetail(bookingId) {
         · ${booking.time} (${durationLabel}) · ${sourceLabel}<br>
         👤 ${clientLabel}
       </div>
-      <button class="btn-cancel" id="scheduleCancelBtn">Cancella prenotazione</button>
+      <div class="schedule-detail-actions">
+        <button class="btn btn-outline" id="scheduleEditBtn">✎ Modifica prenotazione</button>
+        <button class="btn-cancel" id="scheduleCancelBtn">Cancella prenotazione</button>
+      </div>
     </div>
   `;
+
+  document.getElementById("scheduleEditBtn").addEventListener("click", () => {
+    showEditForm(bookingId);
+  });
 
   document.getElementById("scheduleCancelBtn").addEventListener("click", () => {
     deleteBooking(bookingId);
     scheduleDetail.textContent = "✓ Prenotazione cancellata. Lo slot è di nuovo libero.";
     renderScheduleTable();
     renderNav();
+  });
+}
+
+function showEditForm(bookingId) {
+  const booking = getBookings().find((b) => b.id === bookingId);
+  if (!booking) {
+    scheduleDetail.textContent = "Prenotazione non trovata (potrebbe essere stata appena annullata).";
+    return;
+  }
+
+  const slots = buildTimeSlots(booking.date);
+  const timeOptions = slots
+    .map((s) => `<option value="${s}" ${s === booking.time ? "selected" : ""}>${s}</option>`)
+    .join("");
+
+  scheduleDetail.innerHTML = `
+    <div class="schedule-edit-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label>Orario</label>
+          <select id="editTime">${timeOptions}</select>
+        </div>
+        <div class="form-field">
+          <label>Durata</label>
+          <select id="editDuration">
+            <option value="1" ${booking.duration === 1 ? "selected" : ""}>1 ora</option>
+            <option value="1.5" ${booking.duration === 1.5 ? "selected" : ""}>1,5 ore</option>
+            <option value="2" ${booking.duration === 2 ? "selected" : ""}>2 ore</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Nome cliente</label>
+          <input type="text" id="editName" value="${booking.clientName || ""}" />
+        </div>
+        <div class="form-field">
+          <label>Telefono</label>
+          <input type="text" id="editPhone" value="${booking.clientPhone || ""}" />
+        </div>
+      </div>
+      <div class="schedule-edit-actions">
+        <button class="btn btn-primary" id="saveEditBtn">Salva modifiche</button>
+        <button class="btn btn-outline" id="cancelEditBtn">Annulla</button>
+      </div>
+      <div class="confirmation-box" id="editErrorBox"></div>
+    </div>
+  `;
+
+  document.getElementById("cancelEditBtn").addEventListener("click", () => showScheduleDetail(bookingId));
+
+  document.getElementById("saveEditBtn").addEventListener("click", () => {
+    const newTime = document.getElementById("editTime").value;
+    const newDuration = parseFloat(document.getElementById("editDuration").value);
+    const newName = document.getElementById("editName").value.trim();
+    const newPhone = document.getElementById("editPhone").value.trim();
+
+    const conflict = findConflict(booking.sport, booking.court, booking.date, newTime, newDuration, booking.id);
+    if (conflict) {
+      const errorBox = document.getElementById("editErrorBox");
+      errorBox.textContent = "⚠ Questo orario si sovrappone a un'altra prenotazione.";
+      errorBox.classList.add("show", "error");
+      return;
+    }
+
+    updateBooking(booking.id, {
+      time: newTime,
+      duration: newDuration,
+      clientName: newName,
+      clientPhone: newPhone,
+    });
+
+    renderScheduleTable();
+    renderNav();
+    renderClientsTable();
+    scheduleTable.querySelectorAll(`.schedule-cell[data-id="${booking.id}"]`).forEach((c) => c.classList.add("selected"));
+    showScheduleDetail(booking.id);
   });
 }
 
