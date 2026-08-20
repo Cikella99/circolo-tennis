@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gestionale — Circolo Tennis della Stampa di Roma</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="index.html" class="nav-brand">
+      <span class="nav-brand-mark">🎾</span>
+      Circolo Tennis della Stampa · Gestionale
+    </a>
+    <ul class="nav-links" style="position: static; display: flex; border: none; padding: 0;">
+      <li><a href="index.html">Vai al sito pubblico →</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="booking-hero admin-hero">
+  <h1>Area riservata staff</h1>
+  <p>Blocca orari per prenotazioni da desk (di persona o per telefono), gestisci le prenotazioni e modifica gli orari di apertura.</p>
+</section>
+
+<div class="container admin-disclaimer">
+  ⚠ Pagina dimostrativa senza login reale: in un sito vero questa area sarebbe protetta da autenticazione. I dati qui sotto sono salvati solo nel browser (localStorage), non su un server condiviso.
+</div>
+
+<div class="container admin-stats" id="adminStats"></div>
+
+<div class="container admin-grid">
+
+  <div class="card">
+    <h3 class="admin-card-title">🛎️ Blocca un orario (prenotazione da desk)</h3>
+    <p class="admin-card-sub">Usa questo form quando un socio prenota di persona o per telefono, così l'orario risulta subito occupato anche online.</p>
+
+    <div class="form-step">
+      <label class="step-label">Sport</label>
+      <div class="sport-options" id="adminSportOptions">
+        <div class="sport-option" data-sport="tennis"><span class="emoji">🎾</span>Tennis</div>
+        <div class="sport-option" data-sport="padel"><span class="emoji">🏓</span>Padel</div>
+        <div class="sport-option" data-sport="calcetto"><span class="emoji">⚽</span>Calcetto</div>
+      </div>
+    </div>
+
+    <div class="form-step">
+      <label class="step-label">Campo</label>
+      <div class="court-options" id="adminCourtOptions">
+        <p class="slot-hint">Seleziona prima uno sport</p>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label for="adminDate">Data</label>
+        <input type="date" id="adminDate" />
+      </div>
+      <div class="form-field">
+        <label for="adminDuration">Durata</label>
+        <select id="adminDuration">
+          <option value="1">1 ora</option>
+          <option value="1.5">1,5 ore</option>
+          <option value="2">2 ore</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-step">
+      <label class="step-label">Orario</label>
+      <div class="slot-legend">
+        <span><i class="dot free"></i> Libero</span>
+        <span><i class="dot busy"></i> Occupato</span>
+        <span><i class="dot selected"></i> Selezionato</span>
+      </div>
+      <div class="slot-grid" id="adminSlotGrid">
+        <p class="slot-hint">Seleziona sport, campo e data</p>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label for="clientName">Nome cliente (opzionale)</label>
+        <input type="text" id="clientName" placeholder="Es. Marco Rossi" />
+      </div>
+      <div class="form-field">
+        <label for="clientPhone">Telefono / contatto (opzionale)</label>
+        <input type="text" id="clientPhone" placeholder="Es. 333 1234567" />
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-block" id="adminConfirmBtn" disabled style="margin-top: 16px;">Blocca orario</button>
+    <div class="confirmation-box" id="adminConfirmationBox"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="admin-card-title">🕒 Orari di apertura</h3>
+    <p class="admin-card-sub">Questi orari determinano gli slot disponibili nel booking online.</p>
+    <div id="hoursEditor" class="hours-editor"></div>
+    <button class="btn btn-outline btn-block" id="saveHoursBtn" style="margin-top: 16px;">Salva orari</button>
+    <div class="confirmation-box" id="hoursConfirmationBox">✓ Orari aggiornati</div>
+
+    <div class="hours-divider"></div>
+
+    <h4 class="admin-subtitle">📅 Orari per giorno specifico</h4>
+    <p class="admin-card-sub">Sovrascrivi l'orario di un singolo giorno (festività, evento, chiusura straordinaria) senza toccare l'orario settimanale.</p>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label for="adhocDate">Giorno</label>
+        <input type="date" id="adhocDate" />
+      </div>
+      <div class="form-field">
+        <label class="adhoc-closed-label">
+          <input type="checkbox" id="adhocClosed" />
+          Chiuso tutto il giorno
+        </label>
+      </div>
+    </div>
+
+    <div class="form-row" id="adhocTimesRow">
+      <div class="form-field">
+        <label for="adhocOpen">Apertura</label>
+        <input type="time" id="adhocOpen" />
+      </div>
+      <div class="form-field">
+        <label for="adhocClose">Chiusura</label>
+        <input type="time" id="adhocClose" />
+      </div>
+    </div>
+
+    <button class="btn btn-outline btn-block" id="saveAdhocBtn" style="margin-top: 8px;">Salva orario per questo giorno</button>
+    <div class="confirmation-box" id="adhocConfirmationBox">✓ Orario del giorno aggiornato</div>
+
+    <div class="adhoc-list" id="adhocList"></div>
+  </div>
+
+</div>
+
+<div class="container admin-bookings">
+  <h3 class="admin-card-title">📋 Prenotazioni</h3>
+  <div class="table-wrap">
+    <table class="price-table-inner" id="bookingsTable">
+      <thead>
+        <tr>
+          <th>Data</th><th>Orario</th><th>Sport</th><th>Campo</th><th>Durata</th><th>Origine</th><th>Prenotato il</th><th>Cliente</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="bookingsTableBody"></tbody>
+    </table>
+  </div>
+  <p class="slot-hint" id="noBookingsMsg" style="display:none;">Nessuna prenotazione al momento.</p>
+</div>
+
+<footer class="site-footer">
+  <div>Circolo Tennis della Stampa di Roma — Flaminio, Roma Nord</div>
+  <div class="disclaimer">Sito dimostrativo creato a scopo di portfolio, non affiliato ufficialmente al circolo. Le prenotazioni non sono reali.</div>
+</footer>
+
+<script src="js/store.js"></script>
+<script src="js/gestionale.js"></script>
+</body>
+</html>

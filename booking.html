@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prenota un campo — Circolo Tennis della Stampa di Roma</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="index.html" class="nav-brand">
+      <span class="nav-brand-mark">🎾</span>
+      Circolo Tennis della Stampa di Roma
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Apri menu">☰</button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html#about">Chi siamo</a></li>
+      <li><a href="index.html#strutture">Strutture</a></li>
+      <li><a href="index.html#orari">Orari</a></li>
+      <li><a href="index.html#dove-siamo">Dove siamo</a></li>
+      <li><a href="booking.html" class="btn btn-primary">Prenota ora</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="booking-hero">
+  <h1>Prenota il tuo campo</h1>
+  <p>Scegli sport, campo, data e orario. Il prezzo si aggiorna automaticamente.</p>
+</section>
+
+<div class="container">
+  <a href="index.html" class="back-link">← Torna alla homepage</a>
+</div>
+
+<div class="booking-layout">
+  <div class="card">
+
+    <div class="form-step">
+      <label class="step-label"><span class="step-num">1</span>Scegli lo sport</label>
+      <div class="sport-options" id="sportOptions">
+        <div class="sport-option" data-sport="tennis">
+          <span class="emoji">🎾</span>Tennis
+        </div>
+        <div class="sport-option" data-sport="padel">
+          <span class="emoji">🏓</span>Padel
+        </div>
+        <div class="sport-option" data-sport="calcetto">
+          <span class="emoji">⚽</span>Calcetto
+        </div>
+      </div>
+    </div>
+
+    <div class="form-step">
+      <label class="step-label"><span class="step-num">2</span>Scegli il campo</label>
+      <div class="court-options" id="courtOptions">
+        <p style="color: var(--color-text-muted); font-size: 0.88rem; margin: 0;">Seleziona prima uno sport</p>
+      </div>
+    </div>
+
+    <div class="form-step">
+      <label class="step-label"><span class="step-num">3</span>Data</label>
+      <div class="form-field">
+        <input type="date" id="dateInput" />
+      </div>
+    </div>
+
+    <div class="form-step">
+      <label class="step-label"><span class="step-num">4</span>Durata</label>
+      <div class="duration-options" id="durationOptions">
+        <div class="duration-option" data-duration="1">1 ora</div>
+        <div class="duration-option" data-duration="1.5">1,5 ore</div>
+        <div class="duration-option" data-duration="2">2 ore</div>
+      </div>
+    </div>
+
+    <div class="form-step">
+      <label class="step-label"><span class="step-num">5</span>Orario di inizio</label>
+      <div class="slot-legend">
+        <span><i class="dot free"></i> Libero</span>
+        <span><i class="dot busy"></i> Occupato</span>
+        <span><i class="dot selected"></i> Selezionato</span>
+      </div>
+      <div class="slot-grid" id="slotGrid">
+        <p class="slot-hint">Seleziona sport, campo e data per vedere gli orari disponibili</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card summary-panel">
+    <h3>Riepilogo prenotazione</h3>
+    <div class="summary-row"><span>Sport</span><span id="sumSport">—</span></div>
+    <div class="summary-row"><span>Campo</span><span id="sumCourt">—</span></div>
+    <div class="summary-row"><span>Data</span><span id="sumDate">—</span></div>
+    <div class="summary-row"><span>Orario</span><span id="sumTime">—</span></div>
+    <div class="summary-row"><span>Durata</span><span id="sumDuration">—</span></div>
+
+    <div class="summary-total">
+      <span class="label">Totale</span>
+      <span class="amount" id="sumTotal">€0</span>
+    </div>
+
+    <div class="contact-fields">
+      <div class="form-field">
+        <label for="clientNameInput">Nome e cognome</label>
+        <input type="text" id="clientNameInput" placeholder="Es. Laura Bianchi" />
+      </div>
+      <div class="form-field">
+        <label for="clientPhoneInput">Numero WhatsApp</label>
+        <input type="tel" id="clientPhoneInput" placeholder="Es. 333 1234567" />
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-block" id="confirmBtn" disabled>Conferma prenotazione</button>
+
+    <div class="confirmation-box" id="confirmationBox"></div>
+
+    <div class="whatsapp-preview" id="whatsappPreview">
+      <div class="whatsapp-preview-label">📱 Anteprima messaggio WhatsApp (simulato)</div>
+      <div class="whatsapp-bubble" id="whatsappBubble"></div>
+      <p class="whatsapp-note">In un sito reale questo messaggio arriverebbe davvero su WhatsApp al numero indicato. Qui è solo un'anteprima: il link di disdetta funziona comunque, nella demo.</p>
+    </div>
+
+    <p class="summary-note">Questo è un sito dimostrativo a scopo di portfolio: nessuna prenotazione reale viene effettuata e nessun dato viene salvato su un server. Non è richiesto nessun login.</p>
+  </div>
+</div>
+
+<div class="container price-table">
+  <table>
+    <thead>
+      <tr><th>Sport</th><th>Campi disponibili</th><th>Prezzo / ora</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>🎾 Tennis</td><td>4 campi</td><td>€18</td></tr>
+      <tr><td>🏓 Padel</td><td>2 campi</td><td>€24</td></tr>
+      <tr><td>⚽ Calcetto</td><td>2 campi</td><td>€40</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer class="site-footer">
+  <div>Circolo Tennis della Stampa di Roma — Flaminio, Roma Nord</div>
+  <div class="disclaimer">Sito dimostrativo creato a scopo di portfolio, non affiliato ufficialmente al circolo. Le prenotazioni non sono reali.</div>
+  <div class="staff-link"><a href="gestionale.html">Area riservata staff →</a></div>
+</footer>
+
+<script src="js/script.js"></script>
+<script src="js/store.js"></script>
+<script src="js/booking.js"></script>
+</body>
+</html>
