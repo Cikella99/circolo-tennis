@@ -32,6 +32,29 @@
 
 <div class="container admin-stats" id="adminStats"></div>
 
+<div class="container admin-schedule">
+  <div class="card">
+    <h3 class="admin-card-title">🗓️ Disponibilità giornaliera</h3>
+    <p class="admin-card-sub">Tutti i campi e tutti gli orari di un giorno, in un colpo d'occhio. Clicca uno slot occupato per vedere chi ha prenotato.</p>
+
+    <div class="form-field" style="max-width: 220px; margin-bottom: 18px;">
+      <label for="scheduleDate">Giorno</label>
+      <input type="date" id="scheduleDate" />
+    </div>
+
+    <div class="slot-legend">
+      <span><i class="dot free"></i> Libero</span>
+      <span><i class="dot busy"></i> Occupato</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="schedule-table" id="scheduleTable"></table>
+    </div>
+
+    <div class="schedule-detail" id="scheduleDetail">Clicca su uno slot occupato per vedere i dettagli della prenotazione.</div>
+  </div>
+</div>
+
 <div class="container admin-grid">
 
   <div class="card">
@@ -153,6 +176,22 @@
     </table>
   </div>
   <p class="slot-hint" id="noBookingsMsg" style="display:none;">Nessuna prenotazione al momento.</p>
+</div>
+
+<div class="container admin-bookings">
+  <h3 class="admin-card-title">🧾 Storico clienti</h3>
+  <p class="admin-card-sub">Tutti i soci che hanno prenotato almeno una volta, con il numero totale di prenotazioni fatte nella storia del circolo (comprese quelle poi disdette).</p>
+  <div class="table-wrap">
+    <table class="price-table-inner" id="clientsTable">
+      <thead>
+        <tr>
+          <th>Nome</th><th>Telefono</th><th>Prenotazioni totali</th><th>Ultima prenotazione</th>
+        </tr>
+      </thead>
+      <tbody id="clientsTableBody"></tbody>
+    </table>
+  </div>
+  <p class="slot-hint" id="noClientsMsg" style="display:none;">Nessun cliente registrato al momento.</p>
 </div>
 
 <footer class="site-footer">

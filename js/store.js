@@ -26,6 +26,17 @@ const DEFAULT_HOURS = {
 const HOURS_KEY = "nuvolette_hours";
 const HOURS_OVERRIDES_KEY = "nuvolette_hours_overrides";
 const BOOKINGS_KEY = "nuvolette_bookings";
+const HISTORY_KEY = "nuvolette_history";
+
+function getAllCourts() {
+  const list = [];
+  Object.keys(SPORTS).forEach((sportKey) => {
+    SPORTS[sportKey].courts.forEach((court) => {
+      list.push({ sport: sportKey, court });
+    });
+  });
+  return list;
+}
 
 function seedDemoBookings() {
   const today = new Date();
@@ -120,12 +131,57 @@ function addBooking(booking) {
   };
   list.push(entry);
   saveBookings(list);
+  addToHistory(entry);
   return entry;
 }
 
 function deleteBooking(id) {
   const list = getBookings().filter((b) => b.id !== id);
   saveBookings(list);
+}
+
+/* Registro permanente di tutte le prenotazioni mai fatte, usato per lo storico clienti.
+   Non viene mai ripulito da deleteBooking: una prenotazione disdetta resta nello storico. */
+function getHistory() {
+  const raw = localStorage.getItem(HISTORY_KEY);
+  if (!raw) {
+    const seeded = seedDemoBookings();
+    saveHistory(seeded);
+    return seeded;
+  }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(list) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+}
+
+function addToHistory(booking) {
+  const history = getHistory();
+  history.push(booking);
+  saveHistory(history);
+}
+
+function getClientStats() {
+  const map = new Map();
+  getHistory().forEach((b) => {
+    const phone = (b.clientPhone || "").trim();
+    const name = (b.clientName || "").trim();
+    if (!phone && !name) return;
+    const key = phone || name;
+    if (!map.has(key)) {
+      map.set(key, { name: name || "—", phone: phone || "—", count: 0, lastDate: b.date });
+    }
+    const client = map.get(key);
+    client.count += 1;
+    if (name && client.name === "—") client.name = name;
+    if (b.date > client.lastDate) client.lastDate = b.date;
+  });
+  return [...map.values()].sort((a, b) => b.count - a.count);
 }
 
 function weekdayKeyFromDate(dateStr) {
@@ -169,12 +225,16 @@ function findConflict(sport, court, date, time, duration, excludeId) {
   });
 }
 
-function isSlotOccupied(sport, court, date, slotTime) {
+function findBookingAtSlot(sport, court, date, slotTime) {
   const slotM = timeToMinutes(slotTime);
-  return getBookings().some((b) => {
+  return getBookings().find((b) => {
     if (b.sport !== sport || b.court !== court || b.date !== date) return false;
     const bStart = timeToMinutes(b.time);
     const bEnd = bStart + b.duration * 60;
     return slotM >= bStart && slotM < bEnd;
   });
+}
+
+function isSlotOccupied(sport, court, date, slotTime) {
+  return !!findBookingAtSlot(sport, court, date, slotTime);
 }

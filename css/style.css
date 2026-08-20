@@ -1171,6 +1171,89 @@ section {
   margin: 48px auto 64px;
 }
 
+.admin-schedule {
+  margin-top: 32px;
+}
+
+.schedule-table {
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.schedule-table th,
+.schedule-table td {
+  border: 1px solid var(--color-border);
+  padding: 0;
+}
+
+.schedule-table thead th {
+  background: var(--color-green-light);
+  color: var(--color-green-dark);
+  padding: 8px 6px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.schedule-court {
+  position: sticky;
+  left: 0;
+  background: var(--color-white);
+  padding: 8px 12px !important;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--color-text);
+  z-index: 1;
+  box-shadow: 1px 0 0 var(--color-border);
+}
+
+.schedule-table thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.schedule-cell {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+}
+
+.schedule-cell.free {
+  background: var(--color-white);
+}
+
+.schedule-cell.busy {
+  background: var(--color-orange);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.schedule-cell.busy:hover {
+  background: var(--color-orange-dark);
+}
+
+.schedule-cell.busy.selected {
+  background: var(--color-green);
+  outline: 2px solid var(--color-green-dark);
+  outline-offset: -2px;
+}
+
+.schedule-detail {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.schedule-detail strong {
+  color: var(--color-text);
+}
+
 .table-wrap {
   overflow-x: auto;
   background: var(--color-white);

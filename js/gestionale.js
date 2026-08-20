@@ -137,6 +137,8 @@ adminConfirmBtn.addEventListener("click", () => {
   updateAdminButton();
   renderBookingsTable();
   renderStats();
+  renderScheduleTable();
+  renderClientsTable();
 });
 
 /* --- Orari di apertura --- */
@@ -170,6 +172,7 @@ saveHoursBtn.addEventListener("click", () => {
   saveHours(hours);
   hoursConfirmationBox.classList.add("show");
   renderAdminSlotGrid();
+  renderScheduleTable();
   setTimeout(() => hoursConfirmationBox.classList.remove("show"), 2500);
 });
 
@@ -260,6 +263,7 @@ saveAdhocBtn.addEventListener("click", () => {
   setTimeout(() => adhocConfirmationBox.classList.remove("show"), 2500);
   renderAdhocList();
   renderAdminSlotGrid();
+  renderScheduleTable();
 });
 
 loadAdhocFormFor(adhocDate.value);
@@ -318,6 +322,7 @@ function renderBookingsTable() {
       renderBookingsTable();
       renderAdminSlotGrid();
       renderStats();
+      renderScheduleTable();
     });
   });
 }
@@ -346,7 +351,108 @@ function renderStats() {
   `;
 }
 
+/* --- Disponibilità giornaliera --- */
+const scheduleDate = document.getElementById("scheduleDate");
+const scheduleTable = document.getElementById("scheduleTable");
+const scheduleDetail = document.getElementById("scheduleDetail");
+
+scheduleDate.min = today;
+scheduleDate.value = today;
+
+function renderScheduleTable() {
+  const dateStr = scheduleDate.value;
+  const slots = buildTimeSlots(dateStr);
+  const courts = getAllCourts();
+
+  if (slots.length === 0) {
+    scheduleTable.innerHTML = "";
+    scheduleDetail.textContent = "Il circolo è chiuso in questa data.";
+    return;
+  }
+
+  let head = "<thead><tr><th>Campo</th>";
+  slots.forEach((slot) => { head += `<th>${slot}</th>`; });
+  head += "</tr></thead>";
+
+  let body = "<tbody>";
+  courts.forEach(({ sport, court }) => {
+    const sportInfo = SPORTS[sport];
+    body += `<tr><td class="schedule-court">${sportInfo.emoji} ${sportInfo.label} – ${court}</td>`;
+    slots.forEach((slot) => {
+      const booking = findBookingAtSlot(sport, court, dateStr, slot);
+      if (booking) {
+        body += `<td class="schedule-cell busy" data-id="${booking.id}"></td>`;
+      } else {
+        body += `<td class="schedule-cell free"></td>`;
+      }
+    });
+    body += "</tr>";
+  });
+  body += "</tbody>";
+
+  scheduleTable.innerHTML = head + body;
+
+  scheduleTable.querySelectorAll(".schedule-cell.busy").forEach((cell) => {
+    cell.addEventListener("click", () => {
+      scheduleTable.querySelectorAll(".schedule-cell.selected").forEach((c) => c.classList.remove("selected"));
+      cell.classList.add("selected");
+      showScheduleDetail(cell.dataset.id);
+    });
+  });
+}
+
+function showScheduleDetail(bookingId) {
+  const booking = getBookings().find((b) => b.id === bookingId);
+  if (!booking) {
+    scheduleDetail.textContent = "Prenotazione non trovata (potrebbe essere stata appena annullata).";
+    return;
+  }
+  const sportInfo = SPORTS[booking.sport];
+  const durationLabel = booking.duration === 1 ? "1 ora" : `${String(booking.duration).replace(".", ",")} ore`;
+  const sourceLabel = booking.source === "online" ? "💻 Online" : "🛎️ Desk";
+  const clientLabel = [booking.clientName, booking.clientPhone].filter(Boolean).join(" · ") || "Nessun contatto registrato";
+
+  scheduleDetail.innerHTML = `
+    <strong>${sportInfo.emoji} ${sportInfo.label} – ${booking.court}</strong>
+    · ${booking.time} (${durationLabel}) · ${sourceLabel}<br>
+    👤 ${clientLabel}
+  `;
+}
+
+scheduleDate.addEventListener("change", () => {
+  scheduleDetail.textContent = "Clicca su uno slot occupato per vedere i dettagli della prenotazione.";
+  renderScheduleTable();
+});
+
+/* --- Storico clienti --- */
+const clientsTableBody = document.getElementById("clientsTableBody");
+const noClientsMsg = document.getElementById("noClientsMsg");
+
+function renderClientsTable() {
+  const clients = getClientStats();
+  clientsTableBody.innerHTML = "";
+
+  if (clients.length === 0) {
+    noClientsMsg.style.display = "block";
+    return;
+  }
+  noClientsMsg.style.display = "none";
+
+  clients.forEach((c) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${c.name}</td>
+      <td>${c.phone}</td>
+      <td>${c.count}</td>
+      <td>${formatDateShort(c.lastDate)}</td>
+    `;
+    clientsTableBody.appendChild(tr);
+  });
+}
+
 renderHoursEditor();
 renderAdhocList();
 renderBookingsTable();
 renderStats();
+renderScheduleTable();
+renderClientsTable();
