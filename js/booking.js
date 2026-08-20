@@ -25,7 +25,7 @@ const sumTime = document.getElementById("sumTime");
 const sumDuration = document.getElementById("sumDuration");
 const sumTotal = document.getElementById("sumTotal");
 
-const today = new Date().toISOString().split("T")[0];
+const today = getTodayLocal();
 dateInput.min = today;
 
 function populateCourts(sportKey) {

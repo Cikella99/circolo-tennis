@@ -16,7 +16,7 @@ const adminConfirmationBox = document.getElementById("adminConfirmationBox");
 const clientNameInput = document.getElementById("clientName");
 const clientPhoneInput = document.getElementById("clientPhone");
 
-const today = new Date().toISOString().split("T")[0];
+const today = getTodayLocal();
 adminDate.min = today;
 adminState.date = today;
 adminDate.value = today;
@@ -135,8 +135,7 @@ adminConfirmBtn.addEventListener("click", () => {
   clientPhoneInput.value = "";
   renderAdminSlotGrid();
   updateAdminButton();
-  renderBookingsTable();
-  renderStats();
+  renderNav();
   renderScheduleTable();
   renderClientsTable();
 });
@@ -268,96 +267,67 @@ saveAdhocBtn.addEventListener("click", () => {
 
 loadAdhocFormFor(adhocDate.value);
 
-/* --- Tabella prenotazioni --- */
-const bookingsTableBody = document.getElementById("bookingsTableBody");
-const noBookingsMsg = document.getElementById("noBookingsMsg");
-
 function formatDateShort(dateStr) {
   const d = new Date(dateStr + "T00:00:00");
   return d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function formatBookedAt(iso) {
-  const d = new Date(iso);
-  const datePart = d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const timePart = d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
-  return `${datePart} ${timePart}`;
+/* --- Navigazione a blocchi --- */
+const adminNav = document.getElementById("adminNav");
+const workspacePlaceholder = document.getElementById("workspacePlaceholder");
+let activeView = null;
+
+const NAV_ITEMS = [
+  { key: "schedule", icon: "🗓️", label: "Prenotazioni attive", badge: () => getBookings().length },
+  { key: "add", icon: "➕", label: "Aggiungi prenotazione", badge: null },
+  { key: "clients", icon: "🧾", label: "Storico clienti", badge: () => getClientStats().length },
+  { key: "hours", icon: "🕒", label: "Orari di apertura", badge: null },
+];
+
+function renderNav() {
+  adminNav.innerHTML = NAV_ITEMS.map((item) => `
+    <div class="nav-card${activeView === item.key ? " active" : ""}" data-view="${item.key}">
+      <div class="nav-card-icon">${item.icon}</div>
+      <div class="nav-card-label">${item.label}</div>
+      ${item.badge ? `<div class="nav-card-badge">${item.badge()}</div>` : ""}
+    </div>
+  `).join("");
+
+  adminNav.querySelectorAll(".nav-card").forEach((card) => {
+    card.addEventListener("click", () => selectView(card.dataset.view));
+  });
 }
 
-function renderBookingsTable() {
-  const bookings = [...getBookings()].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-  bookingsTableBody.innerHTML = "";
+function selectView(viewKey) {
+  activeView = activeView === viewKey ? null : viewKey;
 
-  if (bookings.length === 0) {
-    noBookingsMsg.style.display = "block";
-    return;
+  document.querySelectorAll(".workspace-view").forEach((v) => { v.style.display = "none"; });
+  workspacePlaceholder.style.display = activeView ? "none" : "block";
+  if (activeView) {
+    document.getElementById(`view-${activeView}`).style.display = "block";
   }
-  noBookingsMsg.style.display = "none";
-
-  bookings.forEach((b) => {
-    const tr = document.createElement("tr");
-    const sportInfo = SPORTS[b.sport];
-    const durationLabel = b.duration === 1 ? "1 ora" : `${String(b.duration).replace(".", ",")} ore`;
-    const sourceLabel = b.source === "online" ? "💻 Online" : "🛎️ Desk";
-    const clientLabel = [b.clientName, b.clientPhone].filter(Boolean).join(" · ") || "—";
-    const bookedAtLabel = b.source === "online" ? formatBookedAt(b.createdAt) : "—";
-
-    tr.innerHTML = `
-      <td>${formatDateShort(b.date)}</td>
-      <td>${b.time}</td>
-      <td>${sportInfo.emoji} ${sportInfo.label}</td>
-      <td>${b.court}</td>
-      <td>${durationLabel}</td>
-      <td>${sourceLabel}</td>
-      <td>${bookedAtLabel}</td>
-      <td>${clientLabel}</td>
-      <td><button class="btn-cancel" data-id="${b.id}">Annulla</button></td>
-    `;
-    bookingsTableBody.appendChild(tr);
-  });
-
-  bookingsTableBody.querySelectorAll(".btn-cancel").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      deleteBooking(btn.dataset.id);
-      renderBookingsTable();
-      renderAdminSlotGrid();
-      renderStats();
-      renderScheduleTable();
-    });
-  });
-}
-
-/* --- Statistiche rapide --- */
-const adminStats = document.getElementById("adminStats");
-
-function renderStats() {
-  const bookings = getBookings();
-  const todayStr = new Date().toISOString().split("T")[0];
-
-  const todayBookings = bookings.filter((b) => b.date === todayStr);
-  const todayOnline = todayBookings.filter((b) => b.source === "online").length;
-  const todayDesk = todayBookings.length - todayOnline;
-
-  adminStats.innerHTML = `
-    <div class="stat-tile">
-      <strong>${bookings.length}</strong>
-      <span>Prenotazioni attive</span>
-    </div>
-    <div class="stat-tile">
-      <strong>${todayBookings.length}</strong>
-      <span>Prenotate oggi</span>
-      <span class="stat-sub">(${todayDesk} desk, ${todayOnline} online)</span>
-    </div>
-  `;
+  renderNav();
 }
 
 /* --- Disponibilità giornaliera --- */
 const scheduleDate = document.getElementById("scheduleDate");
 const scheduleTable = document.getElementById("scheduleTable");
 const scheduleDetail = document.getElementById("scheduleDetail");
+const prevDayBtn = document.getElementById("prevDayBtn");
+const nextDayBtn = document.getElementById("nextDayBtn");
 
-scheduleDate.min = today;
 scheduleDate.value = today;
+
+function shiftScheduleDate(deltaDays) {
+  const current = new Date(scheduleDate.value + "T00:00:00");
+  current.setDate(current.getDate() + deltaDays);
+  scheduleDate.value = dateToLocalISO(current);
+  scheduleDetail.textContent = "Clicca su uno slot occupato per vedere i dettagli della prenotazione.";
+  renderScheduleTable();
+}
+
+prevDayBtn.addEventListener("click", () => shiftScheduleDate(-1));
+nextDayBtn.addEventListener("click", () => shiftScheduleDate(1));
 
 function renderScheduleTable() {
   const dateStr = scheduleDate.value;
@@ -413,10 +383,22 @@ function showScheduleDetail(bookingId) {
   const clientLabel = [booking.clientName, booking.clientPhone].filter(Boolean).join(" · ") || "Nessun contatto registrato";
 
   scheduleDetail.innerHTML = `
-    <strong>${sportInfo.emoji} ${sportInfo.label} – ${booking.court}</strong>
-    · ${booking.time} (${durationLabel}) · ${sourceLabel}<br>
-    👤 ${clientLabel}
+    <div class="schedule-detail-row">
+      <div>
+        <strong>${sportInfo.emoji} ${sportInfo.label} – ${booking.court}</strong>
+        · ${booking.time} (${durationLabel}) · ${sourceLabel}<br>
+        👤 ${clientLabel}
+      </div>
+      <button class="btn-cancel" id="scheduleCancelBtn">Cancella prenotazione</button>
+    </div>
   `;
+
+  document.getElementById("scheduleCancelBtn").addEventListener("click", () => {
+    deleteBooking(bookingId);
+    scheduleDetail.textContent = "✓ Prenotazione cancellata. Lo slot è di nuovo libero.";
+    renderScheduleTable();
+    renderNav();
+  });
 }
 
 scheduleDate.addEventListener("change", () => {
@@ -452,7 +434,6 @@ function renderClientsTable() {
 
 renderHoursEditor();
 renderAdhocList();
-renderBookingsTable();
-renderStats();
+renderNav();
 renderScheduleTable();
 renderClientsTable();

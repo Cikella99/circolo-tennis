@@ -28,6 +28,21 @@ const HOURS_OVERRIDES_KEY = "nuvolette_hours_overrides";
 const BOOKINGS_KEY = "nuvolette_bookings";
 const HISTORY_KEY = "nuvolette_history";
 
+/* Formatta una Date in YYYY-MM-DD usando i componenti locali (non UTC).
+   toISOString() converte in UTC e può far "retrocedere" di un giorno nei fusi
+   orari avanti rispetto a UTC (es. l'Italia) quando l'orario locale è vicino
+   alla mezzanotte: va sempre evitato per manipolare date di calendario. */
+function dateToLocalISO(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function getTodayLocal() {
+  return dateToLocalISO(new Date());
+}
+
 function getAllCourts() {
   const list = [];
   Object.keys(SPORTS).forEach((sportKey) => {
@@ -43,12 +58,22 @@ function seedDemoBookings() {
   const inDays = (n) => {
     const d = new Date(today);
     d.setDate(d.getDate() + n);
-    return d.toISOString().split("T")[0];
+    return dateToLocalISO(d);
   };
+  const now = new Date().toISOString();
   return [
-    { id: "seed-1", sport: "tennis", court: "Campo 2", date: inDays(1), time: "18:00", duration: 1.5, source: "desk", clientName: "Marco R.", clientPhone: "333 1234567", createdAt: new Date().toISOString() },
-    { id: "seed-2", sport: "padel", court: "Campo 1", date: inDays(1), time: "19:00", duration: 1, source: "online", clientName: "", clientPhone: "", createdAt: new Date().toISOString() },
-    { id: "seed-3", sport: "calcetto", court: "Campo 1", date: inDays(2), time: "21:00", duration: 1, source: "desk", clientName: "Circolo amici", clientPhone: "06 1234567", createdAt: new Date().toISOString() },
+    { id: "seed-1", sport: "tennis", court: "Campo 1", date: inDays(0), time: "09:00", duration: 1, source: "online", clientName: "Elena Ferri", clientPhone: "347 1122334", createdAt: now },
+    { id: "seed-2", sport: "padel", court: "Campo 2", date: inDays(0), time: "17:00", duration: 1.5, source: "desk", clientName: "Luca Bianchi", clientPhone: "339 5566778", createdAt: now },
+    { id: "seed-3", sport: "tennis", court: "Campo 2", date: inDays(1), time: "18:00", duration: 1.5, source: "desk", clientName: "Marco Rossi", clientPhone: "333 1234567", createdAt: now },
+    { id: "seed-4", sport: "padel", court: "Campo 1", date: inDays(1), time: "19:00", duration: 1, source: "online", clientName: "Sara Conti", clientPhone: "328 4455667", createdAt: now },
+    { id: "seed-5", sport: "calcetto", court: "Campo 1", date: inDays(2), time: "21:00", duration: 1, source: "desk", clientName: "Circolo Amici", clientPhone: "06 1234567", createdAt: now },
+    { id: "seed-6", sport: "tennis", court: "Campo 3", date: inDays(2), time: "10:00", duration: 1, source: "online", clientName: "Giulia Neri", clientPhone: "347 9988776", createdAt: now },
+    { id: "seed-7", sport: "padel", court: "Campo 2", date: inDays(3), time: "20:00", duration: 1, source: "desk", clientName: "Andrea Villa", clientPhone: "320 1122334", createdAt: now },
+    { id: "seed-8", sport: "calcetto", court: "Campo 2", date: inDays(3), time: "19:00", duration: 2, source: "online", clientName: "Team Sportivo", clientPhone: "339 7766554", createdAt: now },
+    { id: "seed-9", sport: "tennis", court: "Campo 4", date: inDays(4), time: "08:30", duration: 1, source: "desk", clientName: "Paolo Serra", clientPhone: "333 2233445", createdAt: now },
+    { id: "seed-10", sport: "tennis", court: "Campo 1", date: inDays(5), time: "16:00", duration: 1.5, source: "online", clientName: "Elena Ferri", clientPhone: "347 1122334", createdAt: now },
+    { id: "seed-11", sport: "padel", court: "Campo 1", date: inDays(5), time: "11:00", duration: 1, source: "desk", clientName: "Chiara Longo", clientPhone: "348 5566112", createdAt: now },
+    { id: "seed-12", sport: "calcetto", court: "Campo 1", date: inDays(6), time: "18:00", duration: 1, source: "online", clientName: "Marco Rossi", clientPhone: "333 1234567", createdAt: now },
   ];
 }
 
